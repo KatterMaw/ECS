@@ -1,6 +1,6 @@
 ﻿namespace ECS;
 
-internal sealed class ArchetypeDescription
+internal readonly struct ArchetypeDescription
 {
 	public ArchetypeDescription(IReadOnlyCollection<ComponentType> componentTypes)
 	{
@@ -9,11 +9,18 @@ internal sealed class ArchetypeDescription
 
 	public override bool Equals(object? obj)
 	{
-		return ReferenceEquals(this, obj) || obj is ArchetypeDescription other && Equals(other);
+		return obj is ArchetypeDescription other && Equals(other);
 	}
 
-	public override int GetHashCode() => _typesBits.GetHashCode();
-	public bool Equals(ArchetypeDescription other) => _typesBits.Equals(other._typesBits);
+	public bool Equals(ArchetypeDescription other)
+	{
+		return _typesBits.Equals(other._typesBits);
+	}
+
+	public override int GetHashCode()
+	{
+		return _typesBits.GetHashCode();
+	}
 
 	private readonly BitArray _typesBits;
 }
