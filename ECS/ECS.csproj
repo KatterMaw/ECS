@@ -4,6 +4,14 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageId>Katter.ECS</PackageId>
+        <Version>0.0.1</Version>
+        <Title>ECS</Title>
+        <Authors>Katter</Authors>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Diagnostics" Version="8.2.2" />
+    </ItemGroup>
 
 </Project>
