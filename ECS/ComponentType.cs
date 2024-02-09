@@ -1,21 +1,24 @@
 ﻿namespace ECS;
 
+internal static class ComponentType<T> where T : struct
+{
+	public static ComponentType Value { get; private set; }
+	
+	static ComponentType()
+	{
+		Value = ComponentType.Create();
+	}
+}
+
 internal sealed class ComponentType
 {
-	public static ComponentType Get<T>() where T : struct
+	internal static ComponentType Create()
 	{
-		return ComponentTypes.TryGetValue(typeof(T), out var componentType) ? componentType : Create<T>();
+		var newId = Interlocked.Increment(ref _lastId);
+		return new ComponentType(newId);
 	}
 
-	private static readonly Dictionary<Type, ComponentType> ComponentTypes = new();
-
-	private static ComponentType Create<T>()
-	{
-		var newId = ComponentTypes.Count;
-		ComponentType componentType = new(newId);
-		ComponentTypes.Add(typeof(T), componentType);
-		return componentType;
-	}
+	private static int _lastId = -1;
 	
 	public int Id { get; }
 

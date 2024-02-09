@@ -42,6 +42,6 @@ internal sealed class Archetype
 
 	private List<TComponent> GetList<TComponent>() where TComponent : struct
 	{
-		return (List<TComponent>)_components[ComponentType.Get<TComponent>()];
+		return (List<TComponent>)_components[ComponentType<TComponent>.Value];
 	}
 }
