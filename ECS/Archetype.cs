@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
-using CommunityToolkit.Diagnostics;
 
 namespace ECS;
 
@@ -11,16 +10,11 @@ internal sealed class Archetype
 	{
 		_components = componentLists;
 	}
-
-	internal ref Entity CreateEntity(List<ComponentType> componentTypes, List<Action<IList>> componentFactories)
+	
+	internal ref Entity CreateEntity(IEnumerable<ComponentFactory> componentFactories)
 	{
-		Guard.IsEqualTo(componentTypes.Count, _components.Count);
-		for (var i = 0; i < componentTypes.Count; i++)
-		{
-			var type = componentTypes[i];
-			var factory = componentFactories[i];
-			factory(_components[type]);
-		}
+		foreach (var componentFactory in componentFactories)
+			componentFactory.AddComponent(_components[componentFactory.ComponentType]);
 		var newEntityIndex = _entities.Count;
 		Entity entity = new(this, newEntityIndex);
 		_entities.Add(entity);

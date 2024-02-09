@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using CommunityToolkit.Diagnostics;
+﻿using CommunityToolkit.Diagnostics;
 
 namespace ECS;
 
@@ -14,21 +13,21 @@ public sealed class EntityBuilder
 	public EntityBuilder Add<TComponent>(TComponent component) where TComponent : struct
 	{
 		AddInternal<TComponent>();
-		_componentFactories.Add(list => ((IList<TComponent>)list).Add(component));
+		_componentFactories.Add(ComponentFactory.Create(component));
 		return this;
 	}
 	
 	public EntityBuilder Add<TComponent>() where TComponent : struct
 	{
 		AddInternal<TComponent>();
-		_componentFactories.Add(static list => ((IList<TComponent>)list).Add(new TComponent()));
+		_componentFactories.Add(ComponentFactory.Create<TComponent>());
 		return this;
 	}
 
 	private void AddInternal<TComponent>() where TComponent : struct
 	{
 		var componentType = Component<TComponent>.Type;
-		_archetypeBuilder?.Add<TComponent>(componentType);
+		_archetypeBuilder?.Add<TComponent>();
 		_componentTypes.Add(componentType);
 	}
 
@@ -36,11 +35,11 @@ public sealed class EntityBuilder
 	{
 		ArchetypeDescription archetypeDescription = new(_componentTypes);
 		var archetype = GetOrCreateArchetype(world, archetypeDescription);
-		return ref archetype.CreateEntity(_componentTypes, _componentFactories);
+		return ref archetype.CreateEntity(_componentFactories);
 	}
 
 	private readonly List<ComponentType> _componentTypes = new();
-	private readonly List<Action<IList>> _componentFactories = new();
+	private readonly List<ComponentFactory> _componentFactories = new();
 	private readonly ArchetypeBuilder? _archetypeBuilder;
 
 	private Archetype GetOrCreateArchetype(World world, ArchetypeDescription archetypeDescription)

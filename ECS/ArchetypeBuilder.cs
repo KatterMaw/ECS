@@ -7,11 +7,7 @@ public sealed class ArchetypeBuilder
 {
 	public ArchetypeBuilder Add<TComponent>() where TComponent : struct
 	{
-		return Add<TComponent>(Component<TComponent>.Type);
-	}
-
-	internal ArchetypeBuilder Add<TComponent>(ComponentType componentType)
-	{
+		var componentType = Component<TComponent>.Type;
 		_componentTypes.Add(componentType);
 		_listsBuilder.Add(componentType, new List<TComponent>());
 		return this;
