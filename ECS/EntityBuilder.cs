@@ -27,7 +27,7 @@ public sealed class EntityBuilder
 
 	private void AddInternal<TComponent>() where TComponent : struct
 	{
-		var componentType = ComponentType<TComponent>.Value;
+		var componentType = Component<TComponent>.Type;
 		_archetypeBuilder?.Add<TComponent>(componentType);
 		_componentTypes.Add(componentType);
 	}

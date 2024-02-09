@@ -1,12 +1,14 @@
 ﻿namespace ECS;
 
-internal static class ComponentType<T> where T : struct
+// ReSharper disable once UnusedTypeParameter
+internal static class Component<T> where T : struct
 {
-	public static ComponentType Value { get; private set; }
+	// ReSharper disable once StaticMemberInGenericType
+	public static ComponentType Type { get; private set; }
 	
-	static ComponentType()
+	static Component()
 	{
-		Value = ComponentType.Create();
+		Type = ComponentType.Create();
 	}
 }
 
