@@ -5,45 +5,42 @@ namespace ECS;
 
 public sealed class EntityBuilder
 {
-	internal sealed class ComponentFactory
-	{
-		public static ComponentFactory Create<TComponent>(TComponent component) where TComponent : struct
-		{
-			var componentType = ComponentType.Get<TComponent>();
-			return new ComponentFactory(componentType, AddComponent);
-			void AddComponent(IList list) => ((IList<TComponent>)list).Add(component);
-		}
-		
-		public ComponentType Type { get; }
-		public Action<IList> AddComponent { get; }
-
-		private ComponentFactory(ComponentType type, Action<IList> addComponent)
-		{
-			Type = type;
-			AddComponent = addComponent;
-		}
-	}
-
 	public EntityBuilder(bool buildArchetype = true)
 	{
 		if (buildArchetype)
 			_archetypeBuilder = new ArchetypeBuilder();
 	}
 	
-	public EntityBuilder Add<TComponent>(TComponent component = default) where TComponent : struct
+	public EntityBuilder Add<TComponent>(TComponent component) where TComponent : struct
 	{
-		_componentFactories.Add(ComponentType.Get<TComponent>(), ComponentFactory.Create(component));
+		AddInternal<TComponent>();
+		_componentFactories.Add(list => ((IList<TComponent>)list).Add(component));
 		return this;
+	}
+	
+	public EntityBuilder Add<TComponent>() where TComponent : struct
+	{
+		AddInternal<TComponent>();
+		_componentFactories.Add(static list => ((IList<TComponent>)list).Add(new TComponent()));
+		return this;
+	}
+
+	private void AddInternal<TComponent>() where TComponent : struct
+	{
+		var componentType = ComponentType.Get<TComponent>();
+		_archetypeBuilder?.Add<TComponent>(componentType);
+		_componentTypes.Add(componentType);
 	}
 
 	public ref Entity Build(World world)
 	{
-		ArchetypeDescription archetypeDescription = new(_componentFactories.Keys);
+		ArchetypeDescription archetypeDescription = new(_componentTypes);
 		var archetype = GetOrCreateArchetype(world, archetypeDescription);
-		return ref archetype.CreateEntity(_componentFactories.Values);
+		return ref archetype.CreateEntity(_componentTypes, _componentFactories);
 	}
 
-	private readonly Dictionary<ComponentType, ComponentFactory> _componentFactories = new();
+	private readonly List<ComponentType> _componentTypes = new();
+	private readonly List<Action<IList>> _componentFactories = new();
 	private readonly ArchetypeBuilder? _archetypeBuilder;
 
 	private Archetype GetOrCreateArchetype(World world, ArchetypeDescription archetypeDescription)
@@ -51,6 +48,6 @@ public sealed class EntityBuilder
 		if (world.Archetypes.TryGetValue(archetypeDescription, out var archetype))
 			return archetype;
 		Guard.IsNotNull(_archetypeBuilder);
-		return _archetypeBuilder.Build(world);
+		return _archetypeBuilder.BuildAndReturn(world);
 	}
 }

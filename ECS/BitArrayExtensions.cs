@@ -10,7 +10,7 @@ internal static class BitArrayExtensions
 		return bitArray;
 	}
 
-	private static int GetMaxId(this IReadOnlyCollection<ComponentType> types)
+	private static int GetMaxId(this IEnumerable<ComponentType> types)
 	{
 		var result = 0;
 		foreach (var type in types)

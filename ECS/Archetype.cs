@@ -12,11 +12,15 @@ internal sealed class Archetype
 		_components = componentLists;
 	}
 
-	internal ref Entity CreateEntity(IReadOnlyCollection<EntityBuilder.ComponentFactory> componentsData)
+	internal ref Entity CreateEntity(List<ComponentType> componentTypes, List<Action<IList>> componentFactories)
 	{
-		Guard.IsEqualTo(componentsData.Count, _components.Count);
-		foreach (var componentData in componentsData)
-			componentData.AddComponent(_components[componentData.Type]);
+		Guard.IsEqualTo(componentTypes.Count, _components.Count);
+		for (var i = 0; i < componentTypes.Count; i++)
+		{
+			var type = componentTypes[i];
+			var factory = componentFactories[i];
+			factory(_components[type]);
+		}
 		var newEntityIndex = _entities.Count;
 		Entity entity = new(this, newEntityIndex);
 		_entities.Add(entity);

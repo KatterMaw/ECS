@@ -3,17 +3,26 @@ using System.Collections.Immutable;
 
 namespace ECS;
 
-internal sealed class ArchetypeBuilder
+public sealed class ArchetypeBuilder
 {
 	public ArchetypeBuilder Add<TComponent>() where TComponent : struct
 	{
-		var componentType = ComponentType.Get<TComponent>();
+		return Add<TComponent>(ComponentType.Get<TComponent>());
+	}
+
+	internal ArchetypeBuilder Add<TComponent>(ComponentType componentType)
+	{
 		_componentTypes.Add(componentType);
 		_listsBuilder.Add(componentType, new List<TComponent>());
 		return this;
 	}
 
-	public Archetype Build(World world)
+	public void Build(World world)
+	{
+		BuildAndReturn(world);
+	}
+
+	internal Archetype BuildAndReturn(World world)
 	{
 		ArchetypeDescription archetypeDescription = new(_componentTypes);
 		Archetype archetype = new(_listsBuilder.ToImmutable());
