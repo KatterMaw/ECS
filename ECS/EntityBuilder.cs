@@ -20,7 +20,7 @@ public sealed class EntityBuilder
 	public EntityBuilder Add<TComponent>() where TComponent : struct
 	{
 		AddInternal<TComponent>();
-		_componentFactories.Add(ComponentFactory.Create<TComponent>());
+		_componentFactories.Add(Component<TComponent>.DefaultFactory);
 		return this;
 	}
 
