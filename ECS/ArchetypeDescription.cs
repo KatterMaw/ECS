@@ -1,4 +1,6 @@
-﻿namespace ECS;
+﻿using ECS.Extensions;
+
+namespace ECS;
 
 internal readonly struct ArchetypeDescription
 {

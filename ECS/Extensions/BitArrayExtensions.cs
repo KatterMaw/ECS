@@ -1,4 +1,4 @@
-﻿namespace ECS;
+﻿namespace ECS.Extensions;
 
 internal static class BitArrayExtensions
 {
@@ -8,16 +8,5 @@ internal static class BitArrayExtensions
 		foreach (var type in types)
 			bitArray[type.Id] = true;
 		return bitArray;
-	}
-
-	private static int GetMaxId(this IEnumerable<ComponentType> types)
-	{
-		var result = 0;
-		foreach (var type in types)
-		{
-			if (type.Id > result)
-				result = type.Id;
-		}
-		return result;
 	}
 }
