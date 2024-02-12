@@ -9,7 +9,7 @@ internal static class Component<T> where T : struct
 	
 	static Component()
 	{
-		Type = ComponentType.Create();
+		Type = ComponentType.Create<T>();
 		DefaultFactory = ComponentFactory.Create<T>();
 	}
 }

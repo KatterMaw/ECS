@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
+using ECS.Extensions;
 
 namespace ECS;
 
@@ -9,24 +10,29 @@ public sealed class ArchetypeBuilder
 	{
 		var componentType = Component<TComponent>.Type;
 		_componentTypes.Add(componentType);
-		_listsBuilder.Add(componentType, new List<TComponent>());
 		return this;
 	}
 
-	public void Build(World world)
-	{
-		BuildAndReturn(world);
-	}
-
-	internal Archetype BuildAndReturn(World world)
+	public Archetype Build(World world)
 	{
 		ArchetypeDescription archetypeDescription = new(_componentTypes);
-		Archetype archetype = new(_listsBuilder.ToImmutable());
-		world.Archetypes.Add(archetypeDescription, archetype);
+		Archetype archetype = new(Lists);
+		world.AddArchetype(archetypeDescription, archetype);
 		return archetype;
 	}
-
+	
 	private readonly List<ComponentType> _componentTypes = new();
-	private readonly ImmutableDictionary<ComponentType, IList>.Builder _listsBuilder =
-		ImmutableDictionary.CreateBuilder<ComponentType, IList>();
+	
+	private ImmutableArray<IList?> Lists
+	{
+		get
+		{
+			var requiredSize = _componentTypes.GetMaxId() + 1;
+			var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
+			builder.Count = requiredSize;
+			foreach (var componentType in _componentTypes)
+				builder[componentType.Id] = componentType.List;
+			return builder.ToImmutable();
+		}
+	}
 }

@@ -33,8 +33,7 @@ public sealed class EntityBuilder
 
 	public ref Entity Build(World world)
 	{
-		ArchetypeDescription archetypeDescription = new(_componentTypes);
-		var archetype = GetOrCreateArchetype(world, archetypeDescription);
+		var archetype = GetOrCreateArchetype(world);
 		return ref archetype.CreateEntity(_componentFactories);
 	}
 
@@ -42,11 +41,12 @@ public sealed class EntityBuilder
 	private readonly List<ComponentFactory> _componentFactories = new();
 	private readonly ArchetypeBuilder? _archetypeBuilder;
 
-	private Archetype GetOrCreateArchetype(World world, ArchetypeDescription archetypeDescription)
+	private Archetype GetOrCreateArchetype(World world)
 	{
-		if (world.Archetypes.TryGetValue(archetypeDescription, out var archetype))
+		ArchetypeDescription archetypeDescription = new(_componentTypes);
+		if (world.TryGetArchetype(archetypeDescription, out var archetype))
 			return archetype;
 		Guard.IsNotNull(_archetypeBuilder);
-		return _archetypeBuilder.BuildAndReturn(world);
+		return _archetypeBuilder.Build(world);
 	}
 }
