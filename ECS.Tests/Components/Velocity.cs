@@ -1,6 +1,6 @@
 ﻿namespace ECS.Tests.Components;
 
-internal struct Velocity
+public struct Velocity
 {
 	public int X;
 	public int Y;

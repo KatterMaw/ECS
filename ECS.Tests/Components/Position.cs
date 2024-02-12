@@ -1,6 +1,6 @@
 ﻿namespace ECS.Tests.Components;
 
-internal struct Position
+public struct Position
 {
 	public int X;
 	public int Y;

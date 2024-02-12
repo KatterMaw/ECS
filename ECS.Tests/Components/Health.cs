@@ -1,6 +1,6 @@
 ﻿namespace ECS.Tests.Components;
 
-internal struct Health
+public struct Health
 {
 	public float Value;
 
