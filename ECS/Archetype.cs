@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
+using ECS.Extensions;
 
 namespace ECS;
 
@@ -11,19 +12,19 @@ public sealed class Archetype
 	{
 		return _components[Component<TComponent>.Type.Id] != null;
 	}
-	
-	internal Archetype(ImmutableArray<IList?> componentLists)
+
+	internal Archetype(IReadOnlyCollection<ComponentType> componentTypes)
 	{
-		_components = componentLists;
+		var requiredSize = componentTypes.GetMaxId() + 1;
+		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
+		builder.Count = requiredSize;
+		foreach (var componentType in componentTypes)
+			builder[componentType.Id] = componentType.List;
+		_components = builder.ToImmutable();
+		_types = componentTypes.ToImmutableArray();
 	}
 	
 	internal ref Entity CreateEntity(List<ComponentFactory> componentFactories)
-	{
-		AddComponents(componentFactories);
-		return ref CreateEntity();
-	}
-	
-	internal ref Entity CreateEntity(ImmutableList<ComponentFactory> componentFactories)
 	{
 		AddComponents(componentFactories);
 		return ref CreateEntity();
@@ -44,8 +45,20 @@ public sealed class Archetype
 		return CollectionsMarshal.AsSpan(_entities);
 	}
 
+	internal void EnsureRemainingCapacity(int capacity)
+	{
+		_entities.EnsureCapacity(_entities.Count + capacity);
+		foreach (var type in _types)
+		{
+			var list = _components[type.Id];
+			Guard.IsNotNull(list);
+			type.EnsureListRemainingCapacity(list, capacity);
+		}
+	}
+
 	private readonly List<Entity> _entities = new();
 	private readonly ImmutableArray<IList?> _components;
+	private readonly ImmutableArray<ComponentType> _types;
 
 	private List<TComponent> GetList<TComponent>() where TComponent : struct
 	{
@@ -55,16 +68,6 @@ public sealed class Archetype
 	}
 
 	private void AddComponents(List<ComponentFactory> componentFactories)
-	{
-		foreach (var componentFactory in componentFactories)
-		{
-			var list = _components[componentFactory.ComponentType.Id];
-			Guard.IsNotNull(list);
-			componentFactory.AddComponent(list);
-		}
-	}
-
-	private void AddComponents(ImmutableList<ComponentFactory> componentFactories)
 	{
 		foreach (var componentFactory in componentFactories)
 		{

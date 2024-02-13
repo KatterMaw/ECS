@@ -1,11 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
-using ECS.Extensions;
-
-namespace ECS;
+﻿namespace ECS;
 
 public sealed class ArchetypeBuilder
 {
+	internal static Archetype Build(World world, IReadOnlyCollection<ComponentType> componentTypes)
+	{
+		ArchetypeDescription archetypeDescription = new(componentTypes);
+		Archetype archetype = new(componentTypes);
+		world.AddArchetype(archetypeDescription, archetype);
+		return archetype;
+	}
+	
 	public ArchetypeBuilder Add<TComponent>() where TComponent : struct
 	{
 		var componentType = Component<TComponent>.Type;
@@ -15,24 +19,8 @@ public sealed class ArchetypeBuilder
 
 	public Archetype Build(World world)
 	{
-		ArchetypeDescription archetypeDescription = new(_componentTypes);
-		Archetype archetype = new(Lists);
-		world.AddArchetype(archetypeDescription, archetype);
-		return archetype;
+		return Build(world, _componentTypes);
 	}
 	
 	private readonly List<ComponentType> _componentTypes = new();
-	
-	private ImmutableArray<IList?> Lists
-	{
-		get
-		{
-			var requiredSize = _componentTypes.GetMaxId() + 1;
-			var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
-			builder.Count = requiredSize;
-			foreach (var componentType in _componentTypes)
-				builder[componentType.Id] = componentType.List;
-			return builder.ToImmutable();
-		}
-	}
 }

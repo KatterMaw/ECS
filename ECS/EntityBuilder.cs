@@ -1,15 +1,7 @@
-﻿using CommunityToolkit.Diagnostics;
-
-namespace ECS;
+﻿namespace ECS;
 
 public sealed class EntityBuilder
 {
-	public EntityBuilder(bool buildArchetype = true)
-	{
-		if (buildArchetype)
-			_archetypeBuilder = new ArchetypeBuilder();
-	}
-	
 	public EntityBuilder Add<TComponent>(TComponent component) where TComponent : struct
 	{
 		AddInternal<TComponent>();
@@ -27,8 +19,8 @@ public sealed class EntityBuilder
 	private void AddInternal<TComponent>() where TComponent : struct
 	{
 		var componentType = Component<TComponent>.Type;
-		_archetypeBuilder?.Add<TComponent>();
 		_componentTypes.Add(componentType);
+		_cachedArchetype = null;
 	}
 
 	public ref Entity Build(World world)
@@ -37,16 +29,26 @@ public sealed class EntityBuilder
 		return ref archetype.CreateEntity(_componentFactories);
 	}
 
+	public void Build(World world, int count)
+	{
+		var archetype = GetOrCreateArchetype(world);
+		archetype.EnsureRemainingCapacity(count);
+		for (int i = 0; i < count; i++)
+			archetype.CreateEntity(_componentFactories);
+	}
+
 	private readonly List<ComponentType> _componentTypes = new();
 	private readonly List<ComponentFactory> _componentFactories = new();
-	private readonly ArchetypeBuilder? _archetypeBuilder;
+	private Archetype? _cachedArchetype;
 
 	private Archetype GetOrCreateArchetype(World world)
 	{
+		if (_cachedArchetype != null)
+			return _cachedArchetype;
 		ArchetypeDescription archetypeDescription = new(_componentTypes);
-		if (world.TryGetArchetype(archetypeDescription, out var archetype))
-			return archetype;
-		Guard.IsNotNull(_archetypeBuilder);
-		return _archetypeBuilder.Build(world);
+		if (world.TryGetArchetype(archetypeDescription, out _cachedArchetype))
+			return _cachedArchetype;
+		_cachedArchetype = ArchetypeBuilder.Build(world, _componentTypes);
+		return _cachedArchetype;
 	}
 }
