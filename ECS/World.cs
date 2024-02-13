@@ -8,18 +8,27 @@ public sealed class World
 {
 	internal IObservable<Archetype> ArchetypeAdded => _archetypeAdded.AsObservable();
 	internal IReadOnlyCollection<Archetype> Archetypes => _archetypes.Values;
-	
-	internal void AddArchetype(ArchetypeDescription archetypeDescription, Archetype archetype)
-	{
-		_archetypes.Add(archetypeDescription, archetype);
-		_archetypeAdded.OnNext(archetype);
-	}
 
-	internal bool TryGetArchetype(ArchetypeDescription description, [MaybeNullWhen(false)] out Archetype archetype)
+	internal Archetype GetOrCreateArchetype(ArchetypeDescription archetypeDescription)
 	{
-		return _archetypes.TryGetValue(description, out archetype);
+		if (TryGetArchetype(archetypeDescription, out var archetype))
+			return archetype;
+		archetype = new Archetype(archetypeDescription);
+		AddArchetype(archetype);
+		return archetype;
 	}
 
 	private readonly Subject<Archetype> _archetypeAdded = new();
 	private readonly Dictionary<ArchetypeDescription, Archetype> _archetypes = new();
+	
+	private void AddArchetype(Archetype archetype)
+	{
+		_archetypes.Add(archetype.Description, archetype);
+		_archetypeAdded.OnNext(archetype);
+	}
+
+	private bool TryGetArchetype(ArchetypeDescription description, [MaybeNullWhen(false)] out Archetype archetype)
+	{
+		return _archetypes.TryGetValue(description, out archetype);
+	}
 }

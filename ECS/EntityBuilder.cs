@@ -46,9 +46,7 @@ public sealed class EntityBuilder
 		if (_cachedArchetype != null)
 			return _cachedArchetype;
 		ArchetypeDescription archetypeDescription = new(_componentTypes);
-		if (world.TryGetArchetype(archetypeDescription, out _cachedArchetype))
-			return _cachedArchetype;
-		_cachedArchetype = ArchetypeBuilder.Build(world, _componentTypes);
+		_cachedArchetype = world.GetOrCreateArchetype(archetypeDescription);
 		return _cachedArchetype;
 	}
 }

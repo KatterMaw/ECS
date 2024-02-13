@@ -4,8 +4,11 @@ namespace ECS;
 
 internal readonly struct ArchetypeDescription
 {
+	public IReadOnlyCollection<ComponentType> ComponentTypes { get; }
+	
 	public ArchetypeDescription(IReadOnlyCollection<ComponentType> componentTypes)
 	{
+		ComponentTypes = componentTypes;
 		_typesBits = componentTypes.ToBitArray();
 	}
 

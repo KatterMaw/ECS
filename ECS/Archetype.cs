@@ -8,13 +8,17 @@ namespace ECS;
 
 public sealed class Archetype
 {
+	internal ArchetypeDescription Description { get; }
+	
 	public bool Has<TComponent>() where TComponent : struct
 	{
 		return _components[Component<TComponent>.Type.Id] != null;
 	}
 
-	internal Archetype(IReadOnlyCollection<ComponentType> componentTypes)
+	internal Archetype(ArchetypeDescription archetypeDescription)
 	{
+		Description = archetypeDescription;
+		var componentTypes = archetypeDescription.ComponentTypes;
 		var requiredSize = componentTypes.GetMaxId() + 1;
 		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
 		builder.Count = requiredSize;
