@@ -14,11 +14,7 @@ public abstract class ComponentsSystem<TComponent1, TComponent2> : ISystem
 			var components1 = archetype.GetSpan<TComponent1>();
 			var components2 = archetype.GetSpan<TComponent2>();
 			for (int i = 0; i < components1.Length; i++)
-			{
-				ref var component1 = ref components1[i];
-				ref var component2 = ref components2[i];
-				Update(ref component1, ref component2);
-			}
+				Update(ref components1[i], ref components2[i]);
 		}
 		PostUpdate();
 	}
