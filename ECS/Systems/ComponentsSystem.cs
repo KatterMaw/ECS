@@ -9,8 +9,9 @@ public abstract class ComponentsSystem<TComponent1, TComponent2> : ISystem
 	public void Update()
 	{
 		PreUpdate();
-		foreach (var archetype in _query.Archetypes)
+		for (var index = 0; index < _query.Archetypes.Count; index++)
 		{
+			var archetype = _query.Archetypes[index];
 			var components1 = archetype.GetSpan<TComponent1>();
 			var components2 = archetype.GetSpan<TComponent2>();
 			for (int i = 0; i < components1.Length; i++)
