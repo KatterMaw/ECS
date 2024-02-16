@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace ECS.SourceGenerators;
 
 [Generator]
-public sealed class SystemsGenerator : IIncrementalGenerator
+public sealed class AdaptiveSystemsGenerator : IIncrementalGenerator
 {
 	private sealed class SystemData
 	{
@@ -109,15 +109,13 @@ public sealed class SystemsGenerator : IIncrementalGenerator
 
 	private static void GenerateSystemBackend(SourceProductionContext context, SystemData data)
 	{
-		var componentNamespaces = string.Join("\n", data.Components.Select(component => $"using {component.Namespace.ToDisplayString()};").Distinct());
+		/*var componentNamespaces = string.Join("\n", data.Components.Select(component => $"using {component.Namespace.ToDisplayString()};").Distinct());
 		var archetypePredicateBody = string.Join(" && ", data.Components.Select(component => $"archetype.Has<{component.Name}>()"));
-		const string entitiesSpanObtaining = "var entities = archetype.GetEntitiesSpan();";
 		var spansObtaining = string.Join("\n\t\t\t", data.Components.Select(component =>
 		{
 			var method = component.IsOptional ? "GetOptionalSpan" : "GetSpan";
 			return $"Span<{component.Name}> {component.Name.ToLower()}Span = archetype.{method}<{component.Name}>();";
 		}));
-		const string entityObtaining = "ref Entity entity = ref entities[i];";
 		var componentsObtaining = string.Join("\n\t\t\t\t", data.Components.Select(component =>
 		{
 			if (component.IsOptional)
@@ -136,8 +134,139 @@ public sealed class SystemsGenerator : IIncrementalGenerator
 		var updateMethodArgumentsRaw = data.Components.Select(component => $"ref {component.Name.ToLower()}");
 		if (data.PassEntity)
 			updateMethodArgumentsRaw = updateMethodArgumentsRaw.Prepend("ref entity");
-		var updateMethodArguments = string.Join(", ", updateMethodArgumentsRaw);
-		var source =
+		var updateMethodArguments = string.Join(", ", updateMethodArgumentsRaw);*/
+
+		StringBuilder stringBuilder = new();
+
+		void AppendComponentsNamespaceUsings()
+		{
+			var namespaces = data.Components.Select(component => component.Namespace.ToDisplayString()).Distinct();
+			foreach (var componentNamespace in namespaces)
+				stringBuilder.Append("using ").Append(componentNamespace).AppendLine(";");
+		}
+
+		void AppendQueryBody()
+		{
+			foreach (var component in data.Components)
+			{
+				stringBuilder.Append("archetype.Has<").Append(component.Name).Append(">()");
+				if (component != data.Components[data.Components.Length - 1])
+					stringBuilder.Append(" && ");
+			}
+		}
+
+		void AppendComponentSpansObtaining()
+		{
+			foreach (var component in data.Components)
+			{
+				var method = component.IsOptional ? "GetOptionalSpan" : "GetSpan";
+				stringBuilder.Append("\t\t\tSpan<")
+					.Append(component.Name)
+					.Append("> ")
+					.Append(component.Name.ToLower())
+					.Append("Span = archetype.")
+					.Append(method)
+					.Append("<")
+					.Append(component.Name)
+					.AppendLine(">();");
+			}
+		}
+
+		void AppendComponentsObtaining()
+		{
+			foreach (var component in data.Components)
+			{
+				if (component.IsOptional)
+					stringBuilder
+						.Append("\t\t\t\t").Append(component.Name).Append("? ").Append(component.Name.ToLower()).AppendLine("DefaultValue = null;")
+						.Append("\t\t\t\tref ").Append(component.Name).Append("? ").Append(component.Name.ToLower()).Append(" = ref ").Append(component.Name.ToLower()).AppendLine("DefaultValue;")
+						.Append("\t\t\t\tif (").Append(component.Name.ToLower()).AppendLine("Span.Length != 0)")
+						.AppendLine("\t\t\t\t{")
+						.Append("\t\t\t\t\tref ").Append(component.Name).Append(" ").Append(component.Name.ToLower()).Append("Temp = ref ").Append(component.Name.ToLower()).AppendLine("Span[i];")
+						.Append("\t\t\t\t\t").Append(component.Name.ToLower()).Append(" = ").Append(component.Name.ToLower()).AppendLine("Temp;")
+						.AppendLine("\t\t\t\t}");
+				else
+					stringBuilder
+						.Append("\t\t\t\tref ")
+						.Append(component.Name)
+						.Append(" ")
+						.Append(component.Name.ToLower())
+						.Append(" = ref ")
+						.Append(component.Name.ToLower())
+						.AppendLine("Span[i];");
+			}
+		}
+
+		void AppendUpdateMethodArguments()
+		{
+			if (data.PassEntity)
+			{
+				stringBuilder.Append("ref entity");
+				if (data.Components.Any())
+					stringBuilder.Append(", ");
+			}
+
+			foreach (var component in data.Components)
+			{
+				stringBuilder.Append("ref ").Append(component.Name.ToLower());
+				if (component != data.Components[data.Components.Length - 1])
+					stringBuilder.Append(", ");
+			}
+		}
+
+		stringBuilder
+			.AppendLine("using System;")
+			.AppendLine("using ECS;")
+			.AppendLine("using ECS.Systems.Queries;");
+		AppendComponentsNamespaceUsings();
+		stringBuilder.AppendLine();
+		if (!data.Namespace.IsGlobalNamespace)
+			stringBuilder.Append("namespace ").Append(data.Namespace.ToDisplayString()).AppendLine(";").AppendLine();
+		stringBuilder.Append("partial class ").AppendLine(data.Name);
+		stringBuilder.AppendLine("{");
+		stringBuilder
+			.Append("\tpublic ")
+			.Append(data.Name)
+			.AppendLine("(World world)")
+			.AppendLine("\t{")
+			.Append("\t\t_query = new PredicateArchetypeQuery(world, archetype => ");
+		AppendQueryBody();
+		stringBuilder
+			.AppendLine(");")
+			.AppendLine("\t}")
+			.AppendLine()
+			.AppendLine("\tpublic void Update()")
+			.AppendLine("\t{");
+		if (data.HasPreUpdate)
+			stringBuilder.AppendLine("\t\tPreUpdate();");
+		stringBuilder
+			.AppendLine("\t\tfor (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)")
+			.AppendLine("\t\t{")
+			.AppendLine("\t\t\tvar archetype = _query.Archetypes[archetypeIndex];");
+		if (data.PassEntity)
+			stringBuilder.AppendLine("\t\t\tvar entities = archetype.GetEntitiesSpan();");
+		AppendComponentSpansObtaining();
+		stringBuilder
+			.AppendLine("\t\t\tfor (int i = 0; i < archetype.EntitiesCount; i++)")
+			.AppendLine("\t\t\t{");
+		if (data.PassEntity)
+			stringBuilder.AppendLine("\t\t\t\tref Entity entity = ref entities[i];");
+		AppendComponentsObtaining();
+		stringBuilder.Append("\t\t\t\tUpdate(");
+		AppendUpdateMethodArguments();
+		stringBuilder
+			.AppendLine(");")
+			.AppendLine("\t\t\t}")
+			.AppendLine("\t\t}");
+		if (data.HasPostUpdate)
+			stringBuilder.AppendLine("\t\tPostUpdate();");
+		stringBuilder
+			.AppendLine("\t}")
+			.AppendLine()
+			.AppendLine("\tprivate ArchetypeQuery _query;")
+			.Append("}");
+
+		/*var source =
 			$$"""
 			using System;
 			using ECS;
@@ -159,11 +288,11 @@ public sealed class SystemsGenerator : IIncrementalGenerator
 					for (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)
 					{
 						var archetype = _query.Archetypes[archetypeIndex];
-						{{(data.PassEntity ? entitiesSpanObtaining : string.Empty)}}
+						{{(data.PassEntity ? "var entities = archetype.GetEntitiesSpan();" : string.Empty)}}
 						{{spansObtaining}}
 						for (int i = 0; i < archetype.EntitiesCount; i++)
 						{
-							{{(data.PassEntity ? entityObtaining : string.Empty)}}
+							{{(data.PassEntity ? "ref Entity entity = ref entities[i];" : string.Empty)}}
 							{{componentsObtaining}}
 							Update({{updateMethodArguments}});
 						}
@@ -173,7 +302,7 @@ public sealed class SystemsGenerator : IIncrementalGenerator
 				
 				private ArchetypeQuery _query;
 			}
-			""";
-		context.AddSource($"{data.Name}.g.cs", SourceText.From(source, Encoding.UTF8));
+			""";*/
+		context.AddSource($"{data.Name}.g.cs", SourceText.From(stringBuilder.ToString(), Encoding.UTF8));
 	}
 }

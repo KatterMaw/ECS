@@ -20,6 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\ECS\ECS.csproj" />
         <ProjectReference Include="..\ECS.SourceGenerators\ECS.SourceGenerators.csproj"/>
     </ItemGroup>
 

@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ECS.SourceGenerators\ECS.SourceGenerators\ECS.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
       <ProjectReference Include="..\ECS\ECS.csproj" />
     </ItemGroup>
 

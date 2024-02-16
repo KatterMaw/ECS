@@ -145,9 +145,6 @@ public sealed class GenericComponentsSystemsGeneratorTests
 		var generatedFileSyntax = runResult.GeneratedTrees.Single(t => Path.GetFileName(t.FilePath) == "ComponentsSystem.g.cs");
 
 		// Complex generators should be tested using text comparison.
-		Assert.Equal(
-			ExpectedTwoAndThreeComponentsSystemClassesCode,
-			generatedFileSyntax.GetText().ToString(),
-			ignoreLineEndingDifferences: true);
+		Assert.Equal(ExpectedTwoAndThreeComponentsSystemClassesCode, generatedFileSyntax.GetText().ToString());
 	}
 }
