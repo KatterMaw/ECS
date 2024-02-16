@@ -126,7 +126,8 @@ public sealed class GenericComponentsSystemsGenerator : IIncrementalGenerator
 		AppendTypeParameters();
 		stringBuilder.AppendLine("> : ISystem");
 		AppendTypeConstraints();
-		stringBuilder.AppendLine("{")
+		stringBuilder
+			.AppendLine("{")
 			.AppendLine("\tpublic void Update()")
 			.AppendLine("\t{")
 			.AppendLine("\t\tPreUpdate();")
@@ -134,28 +135,31 @@ public sealed class GenericComponentsSystemsGenerator : IIncrementalGenerator
 			.AppendLine("\t\t{")
 			.AppendLine("\t\t\tvar archetype = _query.Archetypes[index];");
 		AppendSpansObtaining();
-		stringBuilder.AppendLine("\t\t\tfor (int i = 0; i < archetype.EntitiesCount; i++)");
-		stringBuilder.Append("\t\t\t\tUpdate(");
+		stringBuilder
+			.AppendLine("\t\t\tfor (int i = 0; i < archetype.EntitiesCount; i++)")
+			.Append("\t\t\t\tUpdate(");
 		AppendUpdateMethodArguments();
-		stringBuilder.AppendLine(");");
-		stringBuilder.AppendLine("\t\t}");
-		stringBuilder.AppendLine("\t\tPostUpdate();");
-		stringBuilder.AppendLine("\t}");
-		stringBuilder.AppendLine();
-		stringBuilder.AppendLine("\tprotected ComponentsSystem(World world)");
-		stringBuilder.AppendLine("\t{");
-		stringBuilder.Append("\t\t_query = new PredicateArchetypeQuery(world, archetype => ");
+		stringBuilder
+			.AppendLine(");")
+			.AppendLine("\t\t}")
+			.AppendLine("\t\tPostUpdate();")
+			.AppendLine("\t}")
+			.AppendLine()
+			.AppendLine("\tprotected ComponentsSystem(World world)")
+			.AppendLine("\t{")
+			.Append("\t\t_query = new PredicateArchetypeQuery(world, archetype => ");
 		AppendQueryBody();
-		stringBuilder.AppendLine(");");
-		stringBuilder.AppendLine("\t}");
-		stringBuilder.AppendLine();
-		stringBuilder.AppendLine("\tprotected virtual void PreUpdate() { }");
-		stringBuilder.Append("\tprotected abstract void Update(");
+		stringBuilder
+			.AppendLine(");")
+			.AppendLine("\t}")
+			.AppendLine()
+			.AppendLine("\tprotected virtual void PreUpdate() { }")
+			.Append("\tprotected abstract void Update(");
 		AppendUpdateMethodParameters();
-		stringBuilder.AppendLine(");");
-		stringBuilder.AppendLine("\tprotected virtual void PostUpdate() { }");
-		stringBuilder.AppendLine();
-		stringBuilder.AppendLine("\tprivate readonly ArchetypeQuery _query;");
-		stringBuilder.Append("}");
+		stringBuilder.AppendLine(");")
+			.AppendLine("\tprotected virtual void PostUpdate() { }")
+			.AppendLine()
+			.AppendLine("\tprivate readonly ArchetypeQuery _query;")
+			.Append("}");
 	}
 }
