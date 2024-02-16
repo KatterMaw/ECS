@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Be
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECS.SourceGenerators", "ECS.SourceGenerators\ECS.SourceGenerators\ECS.SourceGenerators.csproj", "{2B2CAF36-886E-46B9-92FE-8E17E2C66F4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECS.SourceGenerators.Tests", "ECS.SourceGenerators\ECS.SourceGenerators.Tests\ECS.SourceGenerators.Tests.csproj", "{2FF68294-32B8-4E73-A7E0-A5A08A854F05}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,5 +28,13 @@ Global
 		{AD42C1FA-2487-4921-B116-A02269AFA52E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD42C1FA-2487-4921-B116-A02269AFA52E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD42C1FA-2487-4921-B116-A02269AFA52E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B2CAF36-886E-46B9-92FE-8E17E2C66F4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B2CAF36-886E-46B9-92FE-8E17E2C66F4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B2CAF36-886E-46B9-92FE-8E17E2C66F4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B2CAF36-886E-46B9-92FE-8E17E2C66F4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FF68294-32B8-4E73-A7E0-A5A08A854F05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FF68294-32B8-4E73-A7E0-A5A08A854F05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FF68294-32B8-4E73-A7E0-A5A08A854F05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FF68294-32B8-4E73-A7E0-A5A08A854F05}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

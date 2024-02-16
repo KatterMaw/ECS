@@ -41,53 +41,121 @@ public sealed class GenericComponentsSystemsGenerator : IIncrementalGenerator
 	{
 		if (componentsCounts.Length == 0)
 			return;
-		var source = $$"""
-		using ECS.Systems.Queries;
-		
-		namespace ECS.Systems;
-		
-		{{string.Join("\n", componentsCounts.Distinct().Select(GenerateComponentsSystem))}}
-		""";
-		context.AddSource("ComponentsSystem.g.cs", SourceText.From(source, Encoding.UTF8));
+		componentsCounts = componentsCounts.Distinct().ToImmutableArray();
+		StringBuilder stringBuilder = new();
+		stringBuilder.AppendLine("using ECS.Systems.Queries;")
+			.AppendLine()
+			.AppendLine("namespace ECS.Systems;")
+			.AppendLine();
+		foreach (var componentsCount in componentsCounts)
+		{
+			GenerateComponentsSystem(stringBuilder, componentsCount);
+			if (componentsCount != componentsCounts[componentsCounts.Length - 1])
+				stringBuilder.AppendLine().AppendLine();
+		}
+
+		context.AddSource("ComponentsSystem.g.cs", SourceText.From(stringBuilder.ToString(), Encoding.UTF8));
 	}
 
-	private static string GenerateComponentsSystem(int componentsCount)
+	private static void GenerateComponentsSystem(StringBuilder stringBuilder, int componentsCount)
 	{
-		var componentsIndexes = Enumerable.Range(1, componentsCount).ToImmutableList();
-		var typeParameters = string.Join(", ", componentsIndexes.Select(i => $"TComponent{i}"));
-		var typeConstraints = string.Join("\n\t", componentsIndexes.Select(i => $"where TComponent{i} : struct"));
-		var spansObtaining = string.Join("\n\t\t\t", componentsIndexes.Select(i => $"var components{i} = archetype.GetSpan<TComponent{i}>();"));
-		var updateMethodArguments = string.Join(", ", componentsIndexes.Select(i => $"ref components{i}[i]"));
-		var queryBody = string.Join(" && ", componentsIndexes.Select(i => $"archetype.Has<TComponent{i}>()"));
-		var updateMethodParameters = string.Join(", ", componentsIndexes.Select(i => $"ref TComponent{i} component{i}"));
-		return $$"""
-		         public abstract class ComponentsSystem<{{typeParameters}}> : ISystem
-		         	{{typeConstraints}}
-		         {
-		         	public void Update()
-		         	{
-		         		PreUpdate();
-		         		for (var index = 0; index < _query.Archetypes.Count; index++)
-		         		{
-		         			var archetype = _query.Archetypes[index];
-		         			{{spansObtaining}}
-		         			for (int i = 0; i < archetype.EntitiesCount; i++)
-		         				Update({{updateMethodArguments}});
-		         		}
-		         		PostUpdate();
-		         	}
-		         
-		         	protected ComponentsSystem(World world)
-		         	{
-		         		_query = new PredicateArchetypeQuery(world, archetype => {{queryBody}});
-		         	}
-		         	
-		         	protected virtual void PreUpdate() { }
-		         	protected abstract void Update({{updateMethodParameters}});
-		         	protected virtual void PostUpdate() { }
-		         	
-		         	private readonly ArchetypeQuery _query;
-		         }
-		         """;
+		ImmutableArray<int> componentIndexes = Enumerable.Range(1, componentsCount).ToImmutableArray();
+		
+		void AppendTypeParameters()
+		{
+			foreach (var componentIndex in componentIndexes)
+			{
+				stringBuilder.Append("TComponent").Append(componentIndex);
+				if (componentIndex != componentIndexes[componentIndexes.Length - 1])
+					stringBuilder.Append(", ");
+			}
+		}
+
+		void AppendTypeConstraints()
+		{
+			foreach (var componentIndex in componentIndexes)
+				stringBuilder.Append("\twhere TComponent").Append(componentIndex).AppendLine(" : struct");
+		}
+
+		void AppendSpansObtaining()
+		{
+			foreach (var componentIndex in componentIndexes)
+				stringBuilder
+					.Append("\t\t\tvar components")
+					.Append(componentIndex)
+					.Append(" = archetype.GetSpan<TComponent")
+					.Append(componentIndex)
+					.AppendLine(">();");
+		}
+
+		void AppendUpdateMethodArguments()
+		{
+			foreach (var componentIndex in componentIndexes)
+			{
+				stringBuilder.Append("ref components").Append(componentIndex).Append("[i]");
+				if (componentIndex != componentIndexes[componentIndexes.Length - 1])
+					stringBuilder.Append(", ");
+			}
+		}
+
+		void AppendQueryBody()
+		{
+			foreach (var componentIndex in componentIndexes)
+			{
+				stringBuilder.Append("archetype.Has<TComponent").Append(componentIndex).Append(">()");
+				if (componentIndex != componentIndexes[componentIndexes.Length - 1])
+					stringBuilder.Append(" && ");
+			}
+		}
+
+		void AppendUpdateMethodParameters()
+		{
+			foreach (var componentIndex in componentIndexes)
+			{
+				stringBuilder
+					.Append("ref TComponent")
+					.Append(componentIndex)
+					.Append(" component")
+					.Append(componentIndex);
+				if (componentIndex != componentIndexes[componentIndexes.Length - 1])
+					stringBuilder.Append(", ");
+			}
+		}
+
+		stringBuilder.Append("public abstract class ComponentsSystem<");
+		AppendTypeParameters();
+		stringBuilder.AppendLine("> : ISystem");
+		AppendTypeConstraints();
+		stringBuilder.AppendLine("{")
+			.AppendLine("\tpublic void Update()")
+			.AppendLine("\t{")
+			.AppendLine("\t\tPreUpdate();")
+			.AppendLine("\t\tfor (var index = 0; index < _query.Archetypes.Count; index++)")
+			.AppendLine("\t\t{")
+			.AppendLine("\t\t\tvar archetype = _query.Archetypes[index];");
+		AppendSpansObtaining();
+		stringBuilder.AppendLine("\t\t\tfor (int i = 0; i < archetype.EntitiesCount; i++)");
+		stringBuilder.Append("\t\t\t\tUpdate(");
+		AppendUpdateMethodArguments();
+		stringBuilder.AppendLine(");");
+		stringBuilder.AppendLine("\t\t}");
+		stringBuilder.AppendLine("\t\tPostUpdate();");
+		stringBuilder.AppendLine("\t}");
+		stringBuilder.AppendLine();
+		stringBuilder.AppendLine("\tprotected ComponentsSystem(World world)");
+		stringBuilder.AppendLine("\t{");
+		stringBuilder.Append("\t\t_query = new PredicateArchetypeQuery(world, archetype => ");
+		AppendQueryBody();
+		stringBuilder.AppendLine(");");
+		stringBuilder.AppendLine("\t}");
+		stringBuilder.AppendLine();
+		stringBuilder.AppendLine("\tprotected virtual void PreUpdate() { }");
+		stringBuilder.Append("\tprotected abstract void Update(");
+		AppendUpdateMethodParameters();
+		stringBuilder.AppendLine(");");
+		stringBuilder.AppendLine("\tprotected virtual void PostUpdate() { }");
+		stringBuilder.AppendLine();
+		stringBuilder.AppendLine("\tprivate readonly ArchetypeQuery _query;");
+		stringBuilder.Append("}");
 	}
 }
