@@ -29,8 +29,8 @@ public sealed class TwoComponentSystemWithEntityTests
 			{
 				for (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)
 				{
-					var archetype = _query.Archetypes[archetypeIndex];
-					var entities = archetype.GetEntitiesSpan();
+					Archetype archetype = _query.Archetypes[archetypeIndex];
+					Span<Entity> entities = archetype.GetEntitiesSpan();
 					Span<Position> positionSpan = archetype.GetSpan<Position>();
 					Span<Velocity> velocitySpan = archetype.GetSpan<Velocity>();
 					for (int i = 0; i < archetype.EntitiesCount; i++)
@@ -43,7 +43,7 @@ public sealed class TwoComponentSystemWithEntityTests
 				}
 			}
 		
-			private ArchetypeQuery _query;
+			private readonly ArchetypeQuery _query;
 		}
 		""";
 

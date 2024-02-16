@@ -109,33 +109,6 @@ public sealed class AdaptiveSystemsGenerator : IIncrementalGenerator
 
 	private static void GenerateSystemBackend(SourceProductionContext context, SystemData data)
 	{
-		/*var componentNamespaces = string.Join("\n", data.Components.Select(component => $"using {component.Namespace.ToDisplayString()};").Distinct());
-		var archetypePredicateBody = string.Join(" && ", data.Components.Select(component => $"archetype.Has<{component.Name}>()"));
-		var spansObtaining = string.Join("\n\t\t\t", data.Components.Select(component =>
-		{
-			var method = component.IsOptional ? "GetOptionalSpan" : "GetSpan";
-			return $"Span<{component.Name}> {component.Name.ToLower()}Span = archetype.{method}<{component.Name}>();";
-		}));
-		var componentsObtaining = string.Join("\n\t\t\t\t", data.Components.Select(component =>
-		{
-			if (component.IsOptional)
-				return
-					$$"""
-					{{component.Name}}? {{component.Name.ToLower()}}DefaultValue = null;
-					ref {{component.Name}}? {{component.Name.ToLower()}} = ref {{component.Name.ToLower()}}DefaultValue;
-					if ({{component.Name.ToLower()}}Span.Length != 0)
-					{
-						ref {{component.Name}} {{component.Name.ToLower()}}Temp = ref {{component.Name.ToLower()}}Span[i];
-						{{component.Name.ToLower()}} = {{component.Name.ToLower()}}Temp;
-					}
-					""";
-			return $"ref {component.Name} {component.Name.ToLower()} = ref {component.Name.ToLower()}Span[i];";
-		}));
-		var updateMethodArgumentsRaw = data.Components.Select(component => $"ref {component.Name.ToLower()}");
-		if (data.PassEntity)
-			updateMethodArgumentsRaw = updateMethodArgumentsRaw.Prepend("ref entity");
-		var updateMethodArguments = string.Join(", ", updateMethodArgumentsRaw);*/
-
 		StringBuilder stringBuilder = new();
 
 		void AppendComponentsNamespaceUsings()
@@ -242,9 +215,9 @@ public sealed class AdaptiveSystemsGenerator : IIncrementalGenerator
 		stringBuilder
 			.AppendLine("\t\tfor (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)")
 			.AppendLine("\t\t{")
-			.AppendLine("\t\t\tvar archetype = _query.Archetypes[archetypeIndex];");
+			.AppendLine("\t\t\tArchetype archetype = _query.Archetypes[archetypeIndex];");
 		if (data.PassEntity)
-			stringBuilder.AppendLine("\t\t\tvar entities = archetype.GetEntitiesSpan();");
+			stringBuilder.AppendLine("\t\t\tSpan<Entity> entities = archetype.GetEntitiesSpan();");
 		AppendComponentSpansObtaining();
 		stringBuilder
 			.AppendLine("\t\t\tfor (int i = 0; i < archetype.EntitiesCount; i++)")
@@ -263,46 +236,9 @@ public sealed class AdaptiveSystemsGenerator : IIncrementalGenerator
 		stringBuilder
 			.AppendLine("\t}")
 			.AppendLine()
-			.AppendLine("\tprivate ArchetypeQuery _query;")
+			.AppendLine("\tprivate readonly ArchetypeQuery _query;")
 			.Append("}");
-
-		/*var source =
-			$$"""
-			using System;
-			using ECS;
-			using ECS.Systems.Queries;
-			{{componentNamespaces}}
-			
-			{{(data.Namespace.IsGlobalNamespace ? string.Empty : $"namespace {data.Namespace.ToDisplayString()};")}}
-
-			partial class {{data.Name}}
-			{
-				public {{data.Name}}(World world)
-				{
-					_query = new PredicateArchetypeQuery(world, archetype => {{archetypePredicateBody}});
-				}
-				
-				public void Update()
-				{
-					{{(data.HasPreUpdate ? "PreUpdate();" : string.Empty)}}
-					for (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)
-					{
-						var archetype = _query.Archetypes[archetypeIndex];
-						{{(data.PassEntity ? "var entities = archetype.GetEntitiesSpan();" : string.Empty)}}
-						{{spansObtaining}}
-						for (int i = 0; i < archetype.EntitiesCount; i++)
-						{
-							{{(data.PassEntity ? "ref Entity entity = ref entities[i];" : string.Empty)}}
-							{{componentsObtaining}}
-							Update({{updateMethodArguments}});
-						}
-					}
-					{{(data.HasPostUpdate ? "PostUpdate();" : string.Empty)}}
-				}
-				
-				private ArchetypeQuery _query;
-			}
-			""";*/
+		
 		context.AddSource($"{data.Name}.g.cs", SourceText.From(stringBuilder.ToString(), Encoding.UTF8));
 	}
 }

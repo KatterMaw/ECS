@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using ECS.Systems;
 using Microsoft.CodeAnalysis;
@@ -30,7 +29,7 @@ public sealed class TwoComponentsSystemTests
 			{
 				for (var archetypeIndex = 0; archetypeIndex < _query.Archetypes.Count; archetypeIndex++)
 				{
-					var archetype = _query.Archetypes[archetypeIndex];
+					Archetype archetype = _query.Archetypes[archetypeIndex];
 					Span<Position> positionSpan = archetype.GetSpan<Position>();
 					Span<Velocity> velocitySpan = archetype.GetSpan<Velocity>();
 					for (int i = 0; i < archetype.EntitiesCount; i++)
@@ -42,7 +41,7 @@ public sealed class TwoComponentsSystemTests
 				}
 			}
 		
-			private ArchetypeQuery _query;
+			private readonly ArchetypeQuery _query;
 		}
 		""";
 
