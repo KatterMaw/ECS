@@ -4,7 +4,7 @@ namespace ECS.Systems.Queries;
 
 public abstract class ArchetypeQuery : IDisposable
 {
-	internal IReadOnlyList<Archetype> Archetypes
+	public IReadOnlyList<Archetype> Archetypes
 	{
 		get
 		{

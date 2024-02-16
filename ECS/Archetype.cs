@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
 using ECS.Extensions;
@@ -8,12 +9,40 @@ namespace ECS;
 
 public sealed class Archetype
 {
-	internal ArchetypeDescription Description { get; }
+	public int EntitiesCount => _entities.Count;
+
+	public Span<Entity> GetEntitiesSpan()
+	{
+		return CollectionsMarshal.AsSpan(_entities);
+	}
 	
 	public bool Has<TComponent>() where TComponent : struct
 	{
 		return _components[Component<TComponent>.Type.Id] != null;
 	}
+
+	public Span<TComponent> GetSpan<TComponent>() where TComponent : struct
+	{
+		return CollectionsMarshal.AsSpan(GetList<TComponent>());
+	}
+
+	public bool TryGetSpan<TComponent>(out Span<TComponent> span) where TComponent : struct
+	{
+		span = Span<TComponent>.Empty;
+		if (!TryGetList<TComponent>(out var list))
+			return false;
+		span = CollectionsMarshal.AsSpan(list);
+		return true;
+	}
+
+	public Span<TComponent> GetOptionalSpan<TComponent>() where TComponent : struct
+	{
+		if (TryGetSpan<TComponent>(out var span))
+			return span;
+		return Span<TComponent>.Empty;
+	}
+
+	internal ArchetypeDescription Description { get; }
 
 	internal Archetype(ArchetypeDescription archetypeDescription)
 	{
@@ -39,16 +68,6 @@ public sealed class Archetype
 		return ref GetSpan<TComponent>()[index];
 	}
 
-	internal Span<TComponent> GetSpan<TComponent>() where TComponent : struct
-	{
-		return CollectionsMarshal.AsSpan(GetList<TComponent>());
-	}
-
-	internal Span<Entity> GetEntitiesSpan()
-	{
-		return CollectionsMarshal.AsSpan(_entities);
-	}
-
 	internal void EnsureRemainingCapacity(int capacity)
 	{
 		_entities.EnsureCapacity(_entities.Count + capacity);
@@ -69,6 +88,16 @@ public sealed class Archetype
 		var list = _components[Component<TComponent>.Type.Id];
 		Guard.IsNotNull(list);
 		return (List<TComponent>)list;
+	}
+
+	private bool TryGetList<TComponent>([NotNullWhen(true)] out List<TComponent>? list) where TComponent : struct
+	{
+		list = null;
+		var index = Component<TComponent>.Type.Id;
+		if (_components.Length <= index)
+			return false;
+		list = _components[index] as List<TComponent>;
+		return list != null;
 	}
 
 	private void AddComponents(List<ComponentFactory> componentFactories)
