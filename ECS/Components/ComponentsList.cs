@@ -46,7 +46,7 @@ internal sealed class ComponentsList
 		_componentLists = builder.ToImmutable();
 	}
 
-	internal void AddComponents(List<ComponentFactory> componentFactories)
+	internal void AddComponents(IEnumerable<ComponentFactory> componentFactories)
 	{
 		foreach (var componentFactory in componentFactories)
 		{

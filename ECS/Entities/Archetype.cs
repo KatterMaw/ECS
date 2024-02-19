@@ -35,7 +35,7 @@ public sealed class Archetype
 		_components = new ComponentsList(archetypeDescription.ComponentTypes);
 	}
 	
-	internal ref Entity CreateEntity(List<ComponentFactory> componentFactories)
+	internal ref Entity CreateEntity(IEnumerable<ComponentFactory> componentFactories)
 	{
 		_components.AddComponents(componentFactories);
 		return ref CreateEntity();
