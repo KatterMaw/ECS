@@ -2,24 +2,38 @@ using System.Collections;
 
 namespace ECS;
 
-internal readonly struct ComponentFactory
+internal abstract class ComponentFactory
 {
-	internal static ComponentFactory Create<TComponent>() where TComponent : struct
-	{
-		return new ComponentFactory(Component<TComponent>.Type, list => ((IList<TComponent>)list).Add(new TComponent()));
-	}
-	
 	internal static ComponentFactory Create<TComponent>(TComponent component) where TComponent : struct
 	{
-		return new ComponentFactory(Component<TComponent>.Type, list => ((IList<TComponent>)list).Add(component));
+		return new ComponentFactory<TComponent>(component);
 	}
 
-	public readonly ComponentType ComponentType;
-	public readonly Action<IList> AddComponent;
+	public ComponentType ComponentType { get; }
+	public abstract void AddComponent(IList list);
 
-	private ComponentFactory(ComponentType componentType, Action<IList> addComponent)
+	protected ComponentFactory(ComponentType componentType)
 	{
 		ComponentType = componentType;
-		AddComponent = addComponent;
 	}
+}
+
+internal sealed class ComponentFactory<TComponent> : ComponentFactory where TComponent : struct
+{
+	public ComponentFactory(TComponent value) : base(Component<TComponent>.Type)
+	{
+		_value = value;
+	}
+
+	public override void AddComponent(IList list)
+	{
+		AddComponent((List<TComponent>)list);
+	}
+
+	private void AddComponent(List<TComponent> list)
+	{
+		list.Add(_value);
+	}
+	
+	private readonly TComponent _value;
 }
