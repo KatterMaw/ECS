@@ -16,7 +16,7 @@ internal sealed class ComponentsList
 		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
 		builder.Count = requiredSize;
 		foreach (var componentType in componentTypes)
-			builder[componentType.Id] = componentType.List;
+			builder[componentType.Id] = componentType.CreateList();
 		_componentLists = builder.ToImmutable();
 	}
 	
@@ -67,7 +67,7 @@ internal sealed class ComponentsList
 		{
 			var list = _componentLists[type.Id];
 			Guard.IsNotNull(list);
-			type.EnsureListRemainingCapacity(list, capacity);
+			type.EnsureRemainingCapacity(list, capacity);
 		}
 	}
 	

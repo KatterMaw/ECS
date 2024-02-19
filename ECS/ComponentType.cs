@@ -14,9 +14,9 @@ internal sealed class ComponentType
 	private static int _lastId = -1;
 	
 	public int Id { get; }
-	public IList List => _listFactory();
+	public IList CreateList() => _listFactory();
 
-	public void EnsureListRemainingCapacity(IList list, int value)
+	public void EnsureRemainingCapacity(IList list, int value)
 	{
 		_ensureListRemainingCapacity(list, value);
 	}
