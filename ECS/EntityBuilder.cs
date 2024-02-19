@@ -12,7 +12,7 @@ public sealed class EntityBuilder
 	public EntityBuilder Add<TComponent>() where TComponent : struct
 	{
 		AddInternal<TComponent>();
-		_componentFactories.Add(Component<TComponent>.DefaultFactory);
+		_componentFactories.Add(ComponentFactory<TComponent>.Default);
 		return this;
 	}
 

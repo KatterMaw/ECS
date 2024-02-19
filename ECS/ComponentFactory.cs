@@ -20,6 +20,8 @@ internal abstract class ComponentFactory
 
 internal sealed class ComponentFactory<TComponent> : ComponentFactory where TComponent : struct
 {
+	public static ComponentFactory<TComponent> Default { get; } = new(default);
+	
 	public ComponentFactory(TComponent value) : base(Component<TComponent>.Type)
 	{
 		_value = value;
