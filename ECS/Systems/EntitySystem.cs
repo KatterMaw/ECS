@@ -9,7 +9,7 @@ public abstract class EntitySystem : ISystem
 		foreach (var archetype in _query.Archetypes)
 		{
 			PreUpdate();
-			var entities = archetype.GetEntitiesSpan();
+			var entities = archetype.GetEntities();
 			foreach (var entity in entities)
 				Update(in entity);
 			PostUpdate();

@@ -6,7 +6,7 @@ public sealed class Archetype
 {
 	public int EntitiesCount => _entities.Count;
 
-	public Span<Entity> GetEntitiesSpan()
+	public Span<Entity> GetEntities()
 	{
 		return CollectionsMarshal.AsSpan(_entities);
 	}
