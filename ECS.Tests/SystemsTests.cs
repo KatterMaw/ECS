@@ -1,4 +1,5 @@
-﻿using ECS.Systems;
+﻿using ECS.Entities;
+using ECS.Systems;
 using ECS.Systems.Queries;
 using ECS.Tests.Components;
 

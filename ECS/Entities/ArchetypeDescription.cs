@@ -1,7 +1,7 @@
 ﻿using ECS.Components;
 using ECS.Extensions;
 
-namespace ECS;
+namespace ECS.Entities;
 
 internal readonly struct ArchetypeDescription
 {

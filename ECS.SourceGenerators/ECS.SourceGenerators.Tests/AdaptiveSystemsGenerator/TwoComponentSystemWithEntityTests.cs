@@ -13,6 +13,7 @@ public sealed class TwoComponentSystemWithEntityTests
 		"""
 		using System;
 		using ECS;
+		using ECS.Entities;
 		using ECS.Systems.Queries;
 		using Tests.Sample.Components;
 		

@@ -1,4 +1,6 @@
-﻿namespace ECS.Systems.Queries;
+﻿using ECS.Entities;
+
+namespace ECS.Systems.Queries;
 
 public sealed class PredicateArchetypeQuery : ArchetypeQuery
 {

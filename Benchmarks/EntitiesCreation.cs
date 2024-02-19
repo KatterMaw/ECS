@@ -4,6 +4,7 @@ using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Diagnostics.dotTrace;
 using Benchmarks.Components;
 using ECS;
+using ECS.Entities;
 
 namespace Benchmarks;
 

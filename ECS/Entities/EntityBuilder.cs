@@ -1,6 +1,6 @@
 ﻿using ECS.Components;
 
-namespace ECS;
+namespace ECS.Entities;
 
 public sealed class EntityBuilder
 {

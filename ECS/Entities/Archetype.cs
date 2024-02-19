@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using ECS.Components;
 
-namespace ECS;
+namespace ECS.Entities;
 
 public sealed class Archetype
 {

@@ -190,6 +190,7 @@ public sealed class AdaptiveSystemsGenerator : IIncrementalGenerator
 		stringBuilder
 			.AppendLine("using System;")
 			.AppendLine("using ECS;")
+			.AppendLine("using ECS.Entities;")
 			.AppendLine("using ECS.Systems.Queries;");
 		AppendComponentsNamespaceUsings();
 		stringBuilder.AppendLine();

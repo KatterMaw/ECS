@@ -1,4 +1,5 @@
 ﻿using System.Reactive.Disposables;
+using ECS.Entities;
 
 namespace ECS.Systems.Queries;
 

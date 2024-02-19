@@ -1,4 +1,5 @@
-﻿using ECS.Systems.Queries;
+﻿using ECS.Entities;
+using ECS.Systems.Queries;
 
 namespace ECS.Systems;
 

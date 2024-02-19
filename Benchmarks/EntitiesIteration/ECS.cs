@@ -1,6 +1,7 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Benchmarks.Components;
 using ECS;
+using ECS.Entities;
 using ECS.Systems;
 
 namespace Benchmarks;
