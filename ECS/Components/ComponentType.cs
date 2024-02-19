@@ -16,7 +16,27 @@ internal abstract class ComponentType
 	
 	public abstract IList CreateList();
 	public abstract void EnsureRemainingCapacity(IList list, int capacity);
-	public override int GetHashCode() => Id;
+
+	public bool Equals(ComponentType other)
+	{
+		return Id == other.Id;
+	}
+
+	public override bool Equals(object? obj)
+	{
+		if (ReferenceEquals(null, obj))
+			return false;
+		if (ReferenceEquals(this, obj))
+			return true;
+		if (obj.GetType() != GetType())
+			return false;
+		return Equals((ComponentType)obj);
+	}
+
+	public override int GetHashCode()
+	{
+		return Id;
+	}
 
 	protected ComponentType()
 	{

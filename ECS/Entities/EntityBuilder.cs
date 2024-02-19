@@ -1,4 +1,5 @@
-﻿using ECS.Components;
+﻿using CommunityToolkit.Diagnostics;
+using ECS.Components;
 
 namespace ECS.Entities;
 
@@ -6,23 +7,26 @@ public sealed class EntityBuilder
 {
 	public EntityBuilder Add<TComponent>(TComponent component) where TComponent : struct
 	{
-		AddInternal<TComponent>();
-		_componentFactories.Add(ComponentFactory.Create(component));
+		var isAdded = _componentFactories.Add(ComponentFactory.Create(component));
+		Guard.IsTrue(isAdded);
+		_cachedArchetype = null;
 		return this;
 	}
 	
 	public EntityBuilder Add<TComponent>() where TComponent : struct
 	{
-		AddInternal<TComponent>();
-		_componentFactories.Add(ComponentFactory<TComponent>.Default);
+		var isAdded = _componentFactories.Add(ComponentFactory<TComponent>.Default);
+		Guard.IsTrue(isAdded);
+		_cachedArchetype = null;
 		return this;
 	}
 
-	private void AddInternal<TComponent>() where TComponent : struct
+	public EntityBuilder Remove<TComponent>() where TComponent : struct
 	{
-		var componentType = Component<TComponent>.Type;
-		_componentTypes.Add(componentType);
+		var isRemoved = _componentFactories.Remove(ComponentFactory<TComponent>.Default);
+		Guard.IsTrue(isRemoved);
 		_cachedArchetype = null;
+		return this;
 	}
 
 	public ref Entity Build(World world)
@@ -39,15 +43,16 @@ public sealed class EntityBuilder
 			archetype.CreateEntity(_componentFactories);
 	}
 
-	private readonly List<ComponentType> _componentTypes = new();
-	private readonly List<ComponentFactory> _componentFactories = new();
+	private IReadOnlyCollection<ComponentType> ComponentTypes =>
+		_componentFactories.Select(factory => factory.ComponentType).ToArray();
+	private readonly HashSet<ComponentFactory> _componentFactories = new(ComponentFactoryTypeEqualityComparer.Instance);
 	private Archetype? _cachedArchetype;
 
 	private Archetype GetOrCreateArchetype(World world)
 	{
 		if (_cachedArchetype != null)
 			return _cachedArchetype;
-		ArchetypeDescription archetypeDescription = new(_componentTypes);
+		ArchetypeDescription archetypeDescription = new(ComponentTypes);
 		_cachedArchetype = world.GetOrCreateArchetype(archetypeDescription);
 		return _cachedArchetype;
 	}
