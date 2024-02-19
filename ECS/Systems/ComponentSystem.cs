@@ -10,19 +10,22 @@ public abstract class ComponentSystem<TComponent> : ISystem where TComponent : s
 		{
 			PreUpdate();
 			var components = archetype.GetSpan<TComponent>();
-			foreach (var component in components)
-				Update(in component);
+			for (var index = 0; index < components.Length; index++)
+			{
+				ref var component = ref components[index];
+				Update(ref component);
+			}
 			PostUpdate();
 		}
 	}
 
-	protected ComponentSystem(ArchetypeQuery query)
+	protected ComponentSystem(World world)
 	{
-		_query = query;
+		_query = new PredicateArchetypeQuery(world, archetype => archetype.Has<TComponent>());
 	}
 
 	protected virtual void PreUpdate() { }
-	protected abstract void Update(ref readonly TComponent component);
+	protected abstract void Update(ref TComponent component);
 	protected virtual void PostUpdate() { }
 	
 	private readonly ArchetypeQuery _query;
