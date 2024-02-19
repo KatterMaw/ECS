@@ -1,4 +1,4 @@
-namespace ECS;
+namespace ECS.Components;
 
 internal static class Component<T> where T : struct
 {

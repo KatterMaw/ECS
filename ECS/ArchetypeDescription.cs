@@ -1,4 +1,5 @@
-﻿using ECS.Extensions;
+﻿using ECS.Components;
+using ECS.Extensions;
 
 namespace ECS;
 

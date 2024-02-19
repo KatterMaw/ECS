@@ -1,4 +1,6 @@
-﻿namespace ECS;
+﻿using ECS.Components;
+
+namespace ECS;
 
 public sealed class EntityBuilder
 {

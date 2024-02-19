@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using ECS.Components;
 
 namespace ECS;
 

@@ -1,4 +1,5 @@
-﻿using ECS.Tests.Components;
+﻿using ECS.Components;
+using ECS.Tests.Components;
 
 namespace ECS.Tests;
 

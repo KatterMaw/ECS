@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace ECS;
+namespace ECS.Components;
 
 internal abstract class ComponentFactory
 {

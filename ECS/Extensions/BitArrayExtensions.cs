@@ -1,4 +1,6 @@
-﻿namespace ECS.Extensions;
+﻿using ECS.Components;
+
+namespace ECS.Extensions;
 
 internal static class BitArrayExtensions
 {

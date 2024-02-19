@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
 using ECS.Extensions;
 
-namespace ECS;
+namespace ECS.Components;
 
 internal sealed class ComponentsList
 {
