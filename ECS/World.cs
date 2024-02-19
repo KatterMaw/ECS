@@ -14,7 +14,7 @@ public sealed class World
 	{
 		if (TryGetArchetype(archetypeDescription, out var archetype))
 			return archetype;
-		archetype = new Archetype(archetypeDescription);
+		archetype = new Archetype(this, archetypeDescription);
 		AddArchetype(archetype);
 		return archetype;
 	}

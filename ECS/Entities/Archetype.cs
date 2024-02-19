@@ -27,10 +27,12 @@ public sealed class Archetype
 		return _components.Has<TComponent>();
 	}
 
+	internal World World { get; }
 	internal ArchetypeDescription Description { get; }
 
-	internal Archetype(ArchetypeDescription archetypeDescription)
+	internal Archetype(World world, ArchetypeDescription archetypeDescription)
 	{
+		World = world;
 		Description = archetypeDescription;
 		_components = new ComponentsList(archetypeDescription.ComponentTypes);
 	}
@@ -46,10 +48,26 @@ public sealed class Archetype
 		return ref _components.Get<TComponent>(index);
 	}
 
+	internal ref Entity GetEntity(int index)
+	{
+		return ref GetEntities()[index];
+	}
+
+	internal void Remove(int index)
+	{
+		_entities.RemoveAt(index);
+		_components.Remove(index);
+	}
+
 	internal void EnsureRemainingCapacity(int capacity)
 	{
 		_entities.EnsureCapacity(_entities.Count + capacity);
 		_components.EnsureRemainingCapacity(capacity);
+	}
+
+	internal void AddComponentsToBuilder(EntityBuilder builder, int index)
+	{
+		_components.AddToBuilder(builder, index);
 	}
 
 	private readonly List<Entity> _entities = new();
@@ -61,10 +79,5 @@ public sealed class Archetype
 		Entity entity = new(this, newEntityIndex);
 		_entities.Add(entity);
 		return ref GetEntity(newEntityIndex);
-	}
-
-	private ref Entity GetEntity(int index)
-	{
-		return ref GetEntities()[index];
 	}
 }

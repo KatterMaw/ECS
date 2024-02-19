@@ -3,15 +3,19 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Diagnostics;
+using ECS.Entities;
 using ECS.Extensions;
 
 namespace ECS.Components;
 
 internal sealed class ComponentsList
 {
+	public int Count => _componentTypes.Length;
+	
 	public bool Has<TComponent>() where TComponent : struct
 	{
-		return _componentLists[Component<TComponent>.Type.Id] != null;
+		var typeId = Component<TComponent>.Type.Id;
+		return _componentsLookup.Length > typeId && _componentsLookup[typeId] != null;
 	}
 
 	public Span<TComponent> GetSpan<TComponent>() where TComponent : struct
@@ -37,20 +41,26 @@ internal sealed class ComponentsList
 	
 	internal ComponentsList(IReadOnlyCollection<ComponentType> componentTypes)
 	{
-		_componentTypes = componentTypes.ToImmutableArray();
 		var requiredSize = componentTypes.GetMaxId() + 1;
-		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
-		builder.Count = requiredSize;
+		var listsBuilder = ImmutableArray.CreateBuilder<IList>(componentTypes.Count);
+		var lookupBuilder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
+		lookupBuilder.Count = requiredSize;
 		foreach (var componentType in componentTypes)
-			builder[componentType.Id] = componentType.CreateList();
-		_componentLists = builder.ToImmutable();
+		{
+			var list = componentType.CreateList();
+			listsBuilder.Add(list);
+			lookupBuilder[componentType.Id] = list;
+		}
+		_componentTypes = componentTypes.ToImmutableArray();
+		_componentsLists = listsBuilder.ToImmutable();
+		_componentsLookup = lookupBuilder.ToImmutable();
 	}
 
 	internal void AddComponents(IEnumerable<ComponentFactory> componentFactories)
 	{
 		foreach (var componentFactory in componentFactories)
 		{
-			var list = _componentLists[componentFactory.ComponentType.Id];
+			var list = _componentsLookup[componentFactory.ComponentType.Id];
 			Guard.IsNotNull(list);
 			componentFactory.AddComponent(list);
 		}
@@ -61,22 +71,39 @@ internal sealed class ComponentsList
 		return ref GetSpan<TComponent>()[index];
 	}
 
+	internal void Remove(int index)
+	{
+		foreach (var list in _componentsLists)
+			list.RemoveAt(index);
+	}
+
 	internal void EnsureRemainingCapacity(int capacity)
 	{
 		foreach (var type in _componentTypes)
 		{
-			var list = _componentLists[type.Id];
+			var list = _componentsLookup[type.Id];
 			Guard.IsNotNull(list);
 			type.EnsureRemainingCapacity(list, capacity);
 		}
 	}
-	
-	private readonly ImmutableArray<IList?> _componentLists;
+
+	internal void AddToBuilder(EntityBuilder builder, int index)
+	{
+		for (int i = 0; i < Count; i++)
+		{
+			var type = _componentTypes[i];
+			var list = _componentsLists[i];
+			type.AddToBuilder(builder, list, index);
+		}
+	}
+
 	private readonly ImmutableArray<ComponentType> _componentTypes;
+	private readonly ImmutableArray<IList> _componentsLists;
+	private readonly ImmutableArray<IList?> _componentsLookup;
 
 	private List<TComponent> GetList<TComponent>() where TComponent : struct
 	{
-		var list = _componentLists[Component<TComponent>.Type.Id];
+		var list = _componentsLookup[Component<TComponent>.Type.Id];
 		Guard.IsNotNull(list);
 		return (List<TComponent>)list;
 	}
@@ -85,9 +112,9 @@ internal sealed class ComponentsList
 	{
 		list = null;
 		var index = Component<TComponent>.Type.Id;
-		if (_componentLists.Length <= index)
+		if (_componentsLookup.Length <= index)
 			return false;
-		list = _componentLists[index] as List<TComponent>;
+		list = _componentsLookup[index] as List<TComponent>;
 		return list != null;
 	}
 }

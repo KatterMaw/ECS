@@ -5,27 +5,10 @@ namespace ECS.Entities;
 
 public sealed class EntityBuilder
 {
-	public EntityBuilder Add<TComponent>(TComponent component) where TComponent : struct
+	public EntityBuilder Add<TComponent>(TComponent component = default) where TComponent : struct
 	{
-		var isAdded = _componentFactories.Add(ComponentFactory.Create(component));
-		Guard.IsTrue(isAdded);
-		_cachedArchetype = null;
-		return this;
-	}
-	
-	public EntityBuilder Add<TComponent>() where TComponent : struct
-	{
-		var isAdded = _componentFactories.Add(ComponentFactory<TComponent>.Default);
-		Guard.IsTrue(isAdded);
-		_cachedArchetype = null;
-		return this;
-	}
-
-	public EntityBuilder Remove<TComponent>() where TComponent : struct
-	{
-		var isRemoved = _componentFactories.Remove(ComponentFactory<TComponent>.Default);
-		Guard.IsTrue(isRemoved);
-		_cachedArchetype = null;
+		var componentFactory = ComponentFactory.Create(component);
+		Add(componentFactory);
 		return this;
 	}
 
@@ -41,6 +24,20 @@ public sealed class EntityBuilder
 		archetype.EnsureRemainingCapacity(count);
 		for (int i = 0; i < count; i++)
 			archetype.CreateEntity(_componentFactories);
+	}
+
+	internal void Add(ComponentFactory componentFactory)
+	{
+		var isAdded = _componentFactories.Add(componentFactory);
+		Guard.IsTrue(isAdded);
+		_cachedArchetype = null;
+	}
+
+	internal void Remove(ComponentType componentType)
+	{
+		var isRemoved = _componentFactories.Remove(componentType.DefaultFactory);
+		Guard.IsTrue(isRemoved);
+		_cachedArchetype = null;
 	}
 
 	private IReadOnlyCollection<ComponentType> ComponentTypes =>

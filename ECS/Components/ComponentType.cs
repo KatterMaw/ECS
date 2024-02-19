@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using ECS.Entities;
 
 namespace ECS.Components;
 
@@ -16,6 +17,7 @@ internal abstract class ComponentType
 	
 	public abstract IList CreateList();
 	public abstract void EnsureRemainingCapacity(IList list, int capacity);
+	public abstract void AddToBuilder(EntityBuilder builder, IList list, int index);
 
 	public bool Equals(ComponentType other)
 	{
@@ -58,8 +60,19 @@ internal sealed class ComponentType<TComponent> : ComponentType where TComponent
 		EnsureRemainingCapacity((List<TComponent>)list, capacity);
 	}
 
+	public override void AddToBuilder(EntityBuilder builder, IList list, int index)
+	{
+		AddToBuilder(builder, (List<TComponent>)list, index);
+	}
+
 	private static void EnsureRemainingCapacity(List<TComponent> list, int capacity)
 	{
 		list.EnsureCapacity(capacity);
+	}
+
+	private static void AddToBuilder(EntityBuilder builder, List<TComponent> list, int index)
+	{
+		var component = list[index];
+		builder.Add(component);
 	}
 }
