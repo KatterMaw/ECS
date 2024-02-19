@@ -14,7 +14,7 @@ public partial class EntitiesIteration
 		EntityBuilder builder = new();
 		builder.Add<Position>().Add<Health>().Add(new Velocity(10, 0));
 		builder.Build(_ecsWorld, EntitiesCount);
-		_ecsSystem = new ECSFastMovementSystem(_ecsWorld);
+		_ecsSystem = new MovementSystem(_ecsWorld);
 	}
 
 	[Benchmark]
@@ -24,11 +24,11 @@ public partial class EntitiesIteration
 	}
 
 	private World _ecsWorld;
-	private ECSFastMovementSystem _ecsSystem;
+	private MovementSystem _ecsSystem;
 
-	private sealed class ECSFastMovementSystem : ComponentsSystem<Position, Velocity>
+	private sealed class MovementSystem : ComponentsSystem<Position, Velocity>
 	{
-		public ECSFastMovementSystem(World world) : base(world)
+		internal MovementSystem(World world) : base(world)
 		{
 		}
 
