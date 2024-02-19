@@ -2,34 +2,41 @@
 
 namespace ECS;
 
-// ReSharper disable once UnusedTypeParameter
-internal sealed class ComponentType
+internal abstract class ComponentType
 {
-	internal static ComponentType Create<T>()
+	internal static ComponentType Create<T>() where T : struct
 	{
-		var newId = Interlocked.Increment(ref _lastId);
-		return new ComponentType(newId, () => new List<T>(), (list, i) => ((List<T>)list).EnsureCapacity(list.Count + i));
+		return new ComponentType<T>();
 	}
 
 	private static int _lastId = -1;
 	
 	public int Id { get; }
-	public IList CreateList() => _listFactory();
-
-	public void EnsureRemainingCapacity(IList list, int value)
-	{
-		_ensureListRemainingCapacity(list, value);
-	}
 	
+	public abstract IList CreateList();
+	public abstract void EnsureRemainingCapacity(IList list, int capacity);
 	public override int GetHashCode() => Id;
 
-	private readonly Func<IList> _listFactory;
-	private readonly Action<IList, int> _ensureListRemainingCapacity;
-
-	private ComponentType(int id, Func<IList> listFactory, Action<IList, int> ensureListRemainingCapacity)
+	protected ComponentType()
 	{
-		Id = id;
-		_listFactory = listFactory;
-		_ensureListRemainingCapacity = ensureListRemainingCapacity;
+		Id = Interlocked.Increment(ref _lastId);;
+	}
+}
+
+internal sealed class ComponentType<T> : ComponentType where T : struct
+{
+	public override IList CreateList()
+	{
+		return new List<T>();
+	}
+
+	public override void EnsureRemainingCapacity(IList list, int capacity)
+	{
+		EnsureRemainingCapacity((List<T>)list, capacity);
+	}
+
+	private static void EnsureRemainingCapacity(List<T> list, int capacity)
+	{
+		list.EnsureCapacity(capacity);
 	}
 }
