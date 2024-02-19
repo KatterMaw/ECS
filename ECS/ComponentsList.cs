@@ -9,17 +9,6 @@ namespace ECS;
 
 internal sealed class ComponentsList
 {
-	internal ComponentsList(IReadOnlyCollection<ComponentType> componentTypes)
-	{
-		_componentTypes = componentTypes.ToImmutableArray();
-		var requiredSize = componentTypes.GetMaxId() + 1;
-		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
-		builder.Count = requiredSize;
-		foreach (var componentType in componentTypes)
-			builder[componentType.Id] = componentType.CreateList();
-		_componentLists = builder.ToImmutable();
-	}
-	
 	public bool Has<TComponent>() where TComponent : struct
 	{
 		return _componentLists[Component<TComponent>.Type.Id] != null;
@@ -44,6 +33,17 @@ internal sealed class ComponentsList
 		if (TryGetSpan<TComponent>(out var span))
 			return span;
 		return Span<TComponent>.Empty;
+	}
+	
+	internal ComponentsList(IReadOnlyCollection<ComponentType> componentTypes)
+	{
+		_componentTypes = componentTypes.ToImmutableArray();
+		var requiredSize = componentTypes.GetMaxId() + 1;
+		var builder = ImmutableArray.CreateBuilder<IList?>(requiredSize);
+		builder.Count = requiredSize;
+		foreach (var componentType in componentTypes)
+			builder[componentType.Id] = componentType.CreateList();
+		_componentLists = builder.ToImmutable();
 	}
 
 	internal void AddComponents(List<ComponentFactory> componentFactories)
