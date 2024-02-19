@@ -12,6 +12,7 @@ internal abstract class ComponentType
 	private static int _lastId = -1;
 	
 	public int Id { get; }
+	public abstract ComponentFactory DefaultFactory { get; }
 	
 	public abstract IList CreateList();
 	public abstract void EnsureRemainingCapacity(IList list, int capacity);
@@ -23,19 +24,21 @@ internal abstract class ComponentType
 	}
 }
 
-internal sealed class ComponentType<T> : ComponentType where T : struct
+internal sealed class ComponentType<TComponent> : ComponentType where TComponent : struct
 {
+	public override ComponentFactory DefaultFactory => ComponentFactory<TComponent>.Default;
+
 	public override IList CreateList()
 	{
-		return new List<T>();
+		return new List<TComponent>();
 	}
 
 	public override void EnsureRemainingCapacity(IList list, int capacity)
 	{
-		EnsureRemainingCapacity((List<T>)list, capacity);
+		EnsureRemainingCapacity((List<TComponent>)list, capacity);
 	}
 
-	private static void EnsureRemainingCapacity(List<T> list, int capacity)
+	private static void EnsureRemainingCapacity(List<TComponent> list, int capacity)
 	{
 		list.EnsureCapacity(capacity);
 	}
